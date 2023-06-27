@@ -2,8 +2,11 @@
 
 const int outputPin = 12;
 const int inputPinMic = A0;
-const int inputPinButton = 11;
-const float thresh = 1.6;
+const int ledPin = 9;
+const int redLedPin = 10;
+const int buttonPinIn = 2;
+
+const float thresh = 1.95;
 
 int counter = 0;
 
@@ -17,15 +20,25 @@ void setup() {
   digitalWrite(outputPin, HIGH);
 
 
+  pinMode(ledPin, OUTPUT);
+  pinMode(redLedPin, OUTPUT);
+  pinMode(buttonPinIn, INPUT);
+
+  //digitalWrite(buttonPinOut, HIGH);
+
+
+  analogWrite(ledPin, 60);
+  delay(1000);
+  analogWrite(ledPin, 0);
+
   // Initialisierung des seriellen Monitors
   Serial.begin(115200);
 
   // Konfiguration des Eingangspins
   pinMode(inputPinMic, INPUT);
-  pinMode(inputPinButton, INPUT);
   Serial.println("Starting");
 
-  writePattern();
+  //writePattern();
 
 }
 
@@ -116,7 +129,8 @@ int matchPattern(){
 void loop() {
   //TODO writePattern in die loop holen
   float x;
-  if(digitalRead(inputPinButton) == HIGH){
+
+  if(digitalRead(buttonPinIn) == HIGH){
     Serial.println("Recording Pattern now");
     writePattern();
     Serial.println("Finished recording Pattern now");
@@ -125,11 +139,15 @@ void loop() {
   }else if(!((x = (analogRead(inputPinMic) * (5.0 / 1023.0))) <= thresh)){
     if(matchPattern() == 1){
       Serial.println("Opening lock");
+      analogWrite(ledPin, 60);
     }else{
+      analogWrite(redLedPin, 60);
       Serial.println("Wrong pattern");
     }
     delay(5000);
-    Serial.println("Listening again");
+    analogWrite(ledPin, 0);
+    analogWrite(redLedPin, 0);
 
+    Serial.println("Listening again");
   }
 }
