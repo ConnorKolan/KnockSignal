@@ -6,7 +6,7 @@ const int ledPin = 9;
 const int redLedPin = 10;
 const int buttonPinIn = 2;
 
-const float thresh = 1.95;
+const float thresh = 1.6;
 
 int counter = 0;
 
@@ -55,7 +55,7 @@ long detectKnock(){
 void writePattern(){
   Serial.println("Writing Pattern now");
   long lastStep = detectKnock();
-  delay(30);
+  delay(50);
 
   if(lastStep == -1){
     Serial.println("No knock detected resuming with old one");
@@ -67,7 +67,7 @@ void writePattern(){
 
   //detect knock at the end of loop to wait for the next
   while((currentTime = detectKnock()) != -1){
-    delay(10);
+    delay(50);
     int difference = currentTime - lastStep;
     byte second = (byte) (difference & 0xFF);
     byte first = (byte) ((difference >> 8) & 0xFF);
@@ -86,15 +86,38 @@ void writePattern(){
   EEPROM.write(i++, 255);
   EEPROM.write(i, 255);
   Serial.println("Finished Pattern now");
+
+  i = 0;
+  int allowedDifference = 0;
+  byte first;
+  byte second;
+
+  do{
+    delay(allowedDifference);
+
+    analogWrite(ledPin, 60);
+    delay(50);
+    analogWrite(ledPin, 0);
+
+    first = EEPROM.read(i++);
+    second = EEPROM.read(i++);
+
+    allowedDifference = 0;
+    allowedDifference |= first;                  // Set the high byte
+    allowedDifference = allowedDifference << 8;  // Shift the high byte to the left by 8 bits
+    allowedDifference |= second; 
+
+  }while(first != 255);
+
 }
 
 int matchPattern(){
   long lastStep = millis();
-  delay(30);
+  delay(50);
 
   long currentTime;
   int i = 0;
-  int tolerance = 50;
+  int tolerance = 70;
 
   byte first = EEPROM.read(i++);
   byte second = EEPROM.read(i++);
@@ -122,7 +145,7 @@ int matchPattern(){
     if((first == 255) && (second == 255)){
       return 1;
     }
-    delay(30);
+    delay(50);
   }
 }
 
